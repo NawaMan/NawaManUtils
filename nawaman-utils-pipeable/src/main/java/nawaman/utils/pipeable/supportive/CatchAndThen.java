@@ -35,6 +35,8 @@ public class CatchAndThen<RESULT> extends CatchNoCheckException<RESULT> {
      * Construct CatchAndThen with the given function.
      * 
      * @param orFunction  the function.
+     * 
+     * @param <R> the result type.
      */
     public <R extends RESULT> CatchAndThen(Function<FailableException, R> orFunction) {
         super(orFunction);

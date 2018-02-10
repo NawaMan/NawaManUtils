@@ -51,7 +51,7 @@ public class CatchTest {
     public void testCatchThen() throws Throwable {
         val person = new Person(null);
         val result = person.pipe(Person::burn, Catch.then(e->e.toString()));
-        assertEquals("dssb.failable.FailableException: java.io.IOException: burned", result);
+        assertEquals("nawaman.failable.FailableException: java.io.IOException: burned", result);
     }
     
     @Test

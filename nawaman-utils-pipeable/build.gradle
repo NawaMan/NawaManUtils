@@ -12,9 +12,8 @@ repositories {
 dependencies {
     compileOnly 'org.projectlombok:lombok:1.16.16'
     
-    compile group: 'nawaman',       name: 'failablej',            version: '1.1.1'
-    compile group: 'nawaman',       name: 'nullablej',            version: '1.2.0'
-    compile group: 'nawaman-utils', name: 'nawaman-utils-common', version: '0.1.0'
+    compile group: 'nawaman', name: 'failablej', version: '1.1.1'
+    compile group: 'nawaman', name: 'nullablej', version: '1.2.0'
     
     testCompile     'junit:junit:4.12'
     testCompileOnly 'org.projectlombok:lombok:1.16.16'

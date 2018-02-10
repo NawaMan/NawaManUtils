@@ -2,7 +2,7 @@
 gradle clean build publishToMavenLocal
 
 PROJECTREPO=~/.m2/repository/nawaman-utils
-PUBLISHREPO=../maven-repository
+PUBLISHREPO=../nawaman-maven-repository
 
 if [ -d $PUBLISHREPO ]; then
     cp -Rf $PROJECTREPO $PUBLISHREPO
