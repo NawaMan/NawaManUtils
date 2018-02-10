@@ -1,0 +1,6 @@
+
+include ":nawaman-utils-common"
+include ":nawaman-utils-reflection"
+include ":nawaman-utils-pipeable"
+
+rootProject.name = theGroup
