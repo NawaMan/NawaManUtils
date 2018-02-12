@@ -17,10 +17,15 @@ package nawaman.utils.reflection;
 import static java.util.Arrays.stream;
 
 import java.lang.annotation.Annotation;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+
+import lombok.NonNull;
+import lombok.val;
+import nawaman.utils.reflection.exception.NotDefaultMethodException;
 
 /**
  * Utility class relating to reflection.
@@ -102,6 +107,38 @@ public class UReflection {
             || !Modifier.isFinal(theElementModifiers)
             || !expectedType.isAssignableFrom(theElementType);
         return isPublicStaticFinalCompatible;
+    }
+    
+    /**
+     * Invoke the default of an interface method of the proxy object given the methodArgs.
+     * 
+     * @param proxy       the proxy object.
+     * @param method      the method -- this has to be a default object.
+     * @param methodArgs  the arguments for the invocation.
+     * @return  the invocation result.
+     * @throws NotDefaultMethodException  if the method is not a default method - to avoid this use {@code Method.isDefault()}.
+     * @throws Throwable                  any exception that might occur.
+     */
+    public static Object invokeDefaultMethod(
+            @NonNull Object proxy, 
+            @NonNull Method method, 
+            @NonNull Object[] methodArgs) 
+                    throws NotDefaultMethodException, Throwable {
+        if (!method.isDefault())
+            throw new NotDefaultMethodException(method);
+        
+        // TODO - See if we can avoid this in case it is already done.
+        val declaringClass = method.getDeclaringClass();
+        val constructor    = MethodHandles.Lookup.class
+                .getDeclaredConstructor(Class.class, int.class);
+        constructor.setAccessible(true);
+        
+        val result = constructor
+                .newInstance(declaringClass, MethodHandles.Lookup.PRIVATE)
+                .unreflectSpecial(method, declaringClass)
+                .bindTo(proxy)
+                .invokeWithArguments(methodArgs);
+        return result;
     }
     
 }
