@@ -119,10 +119,7 @@ public class UReflection {
      * @throws NotDefaultMethodException  if the method is not a default method - to avoid this use {@code Method.isDefault()}.
      * @throws Throwable                  any exception that might occur.
      */
-    public static Object invokeDefaultMethod(
-            @NonNull Object proxy, 
-            @NonNull Method method, 
-            @NonNull Object[] methodArgs) 
+    public static Object invokeDefaultMethod(@NonNull Object proxy, @NonNull Method method, Object[] methodArgs) 
                     throws NotDefaultMethodException, Throwable {
         if (!method.isDefault())
             throw new NotDefaultMethodException(method);
