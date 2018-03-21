@@ -8,6 +8,8 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 import lombok.val;
 import nawaman.utils.reflection.exception.NotDefaultMethodException;
@@ -127,5 +129,24 @@ public class UProxyTest {
     public void testSuccess_implementInSuper() {
         val theProxy = createDefaultProxy(IGreet3Child.class);
         assertEquals("Hello: world", theProxy.greet("world"));
+    }
+    
+    
+    public static interface IGreetAll extends WithToStringHashCodeEquals {
+        public default String greet(String name) {
+            return "Hello: " + name;
+        }
+    }
+    
+    @Test
+    public void testWithToStringHashCodeEquals() {
+        val theProxy  = createDefaultProxy(IGreetAll.class);
+        val theProxy2 = createDefaultProxy(IGreetAll.class);
+        assertEquals(((WithToStringHashCodeEquals)theProxy)._toString(),        theProxy.toString());
+        assertEquals(((WithToStringHashCodeEquals)theProxy)._hashCode(),        theProxy.hashCode());
+        assertTrue(theProxy._equals(theProxy));
+        assertFalse(theProxy._equals(theProxy2));
+        assertEquals(((WithToStringHashCodeEquals)theProxy)._equals(theProxy),  theProxy._equals(theProxy));
+        assertEquals(((WithToStringHashCodeEquals)theProxy)._equals(theProxy2), theProxy._equals(theProxy2));
     }
 }
