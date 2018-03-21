@@ -1,80 +1,86 @@
 package nawaman.utils.reflection;
 
-import static java.lang.String.format;
-import static nawaman.utils.reflection.UReflection.invokeDefaultMethod;
-import static org.junit.Assert.*;
+import static nawaman.utils.reflection.UReflection.getValueFromStaticFieldOrNull;
+import static nawaman.utils.reflection.UReflection.hasAnnotationWithName;
+import static nawaman.utils.reflection.UReflection.invokeStaticMethodOrNull;
+import static nawaman.utils.reflection.UReflection.isPublicStaticFinalAndCompatible;
+
+import java.lang.annotation.Annotation;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 import org.junit.Test;
 
-import lombok.val;
-import nawaman.utils.reflection.exception.NotDefaultMethodException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 @SuppressWarnings("javadoc")
 public class UReflectionTest {
     
-    public static interface HasDefaultMethod {
+    @Target({ ElementType.METHOD, ElementType.FIELD })  
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface TestAnnotation {
         
-        public default String getMessage() {
-            return "Hello world!";
+    }
+    
+    public static class TestClass {
+        
+        public static final String noAnnotation = "";
+        @TestAnnotation
+        public static final String withAnnotation = "";
+
+        public static final String compatible = "42";
+        public static String noFinal = "";
+        public final String noStatic = "";
+        @SuppressWarnings("unused")
+        private static final String noPublic = "";
+        public static final int noCompatible = 42;
+        
+        public static String fortyTwo() {
+            return "42";
         }
-        
     }
     
     @Test
-    public void testInvokeDefaultMethod() throws NotDefaultMethodException, Throwable {
-        val obj    = (HasDefaultMethod)new HasDefaultMethod() {};
-        val method = HasDefaultMethod.class.getDeclaredMethod("getMessage");
-        val result = invokeDefaultMethod(obj, method, new Object[0]);
-        assertEquals("Hello world!", result);
+    public void testHasAnnotation() throws NoSuchFieldException, SecurityException {
+        assertFalse(hasAnnotationWithName(getAnnotations(TestClass.class, "noAnnotation"), "TestAnnotation"));
+        assertTrue(hasAnnotationWithName(getAnnotations(TestClass.class, "withAnnotation"), "TestAnnotation"));
     }
     
-    public static interface HasOverrideDefaultMethod extends HasDefaultMethod {
-        
-        public default String getMessage() {
-            return "Hi world!";
-        }
-        
-    }
-    
-    public static class HasNoDefaultMethod implements HasDefaultMethod {
-        
-        public String getMessage() {
-            return "Hi world!";
-        }
-        
+    private Annotation[] getAnnotations(Class<TestClass> theClass, String fieldName) throws NoSuchFieldException {
+        return theClass.getField(fieldName).getAnnotations();
     }
     
     @Test
-    public void testInvokeDefaultMethod_noMatterWhatObjectIs_itIsTheMethodThatCount() throws NotDefaultMethodException, Throwable {
-        // The original interface
-        val objFromSuper    = (HasOverrideDefaultMethod)new HasOverrideDefaultMethod() {};
-        val methodFromSuper = HasDefaultMethod.class.getDeclaredMethod("getMessage");
-        val resultFromSuper = invokeDefaultMethod(objFromSuper, methodFromSuper, new Object[0]);
-        assertEquals("Hello world!", resultFromSuper);
+    public void testPublicStaticFinalCompatible() throws NoSuchFieldException, SecurityException {
+        Field compatibleField = TestClass.class.getField("compatible");
+        Field noFinalField = TestClass.class.getField("noFinal");
+        Field noStatic     = TestClass.class.getField("noStatic");
+        Field noPublic     = TestClass.class.getDeclaredField("noPublic");
+        Field noCompatible = TestClass.class.getField("noCompatible");
         
-        // The child interface
-        val objFromChild    = (HasOverrideDefaultMethod)new HasOverrideDefaultMethod() {};
-        val methodFromChild = HasOverrideDefaultMethod.class.getDeclaredMethod("getMessage");
-        val resultFromChild = invokeDefaultMethod(objFromChild, methodFromChild, new Object[0]);
-        assertEquals("Hi world!", resultFromChild);
-        
-        // The class
-        val objFromClass    = new HasNoDefaultMethod() {};
-        val methodFromClass = HasDefaultMethod.class.getDeclaredMethod("getMessage");    // Get from the interface
-        val resultFromClass = invokeDefaultMethod(objFromClass, methodFromClass, new Object[0]);
-        assertEquals("Hello world!", resultFromClass);                                   // Call the default one not the class one.
+        assertTrue(isPublicStaticFinalAndCompatible(String.class,  compatibleField.getType(), compatibleField.getModifiers()));
+        assertFalse(isPublicStaticFinalAndCompatible(String.class, noFinalField.getType(),    noFinalField.getModifiers()));
+        assertFalse(isPublicStaticFinalAndCompatible(String.class, noStatic.getType(),        noStatic.getModifiers()));
+        assertFalse(isPublicStaticFinalAndCompatible(String.class, noPublic.getType(),        noPublic.getModifiers()));
+        assertFalse(isPublicStaticFinalAndCompatible(String.class, noCompatible.getType(),    noCompatible.getModifiers()));
     }
     
     @Test
-    public void testInvokeDefaultMethod_notDefaultMethod() throws Throwable {
-        val obj    = new HasNoDefaultMethod() {};
-        val method = HasNoDefaultMethod.class.getDeclaredMethod("getMessage");  // Get from the class
-        try {
-            invokeDefaultMethod(obj, method, new Object[0]);
-            fail(format("Expect a %s here", NotDefaultMethodException.class.getSimpleName()));
-        } catch (NotDefaultMethodException e) {
-            assertEquals(method, e.getMethod());
-        }
+    public void testGetValueFromStaticFieldOrNull() throws NoSuchFieldException, SecurityException {
+        Field compatibleField = TestClass.class.getField("compatible");
+        assertEquals("42", getValueFromStaticFieldOrNull(TestClass.class, compatibleField));
+    }
+    
+    @Test
+    public void testInvokeStaticMethodOrNull() throws NoSuchMethodException, SecurityException {
+        Method method = TestClass.class.getMethod("fortyTwo", new Class[0]);
+        assertEquals("42", invokeStaticMethodOrNull(Test.class, method));
     }
     
 }
