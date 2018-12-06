@@ -1,4 +1,4 @@
-//  Copyright (c) 2017 Nawapunth Manusitthipol (NawaMan).
+//  Copyright (c) 2017-2018 Nawapunth Manusitthipol (NawaMan).
 //  ------------------------------------------------------------------------
 //  All rights reserved. This program and the accompanying materials
 //  are made available under the terms of the Eclipse Public License v1.0
@@ -96,12 +96,15 @@ public class UReflection {
             Class<T> expectedType,
             Class<?> theElementType,
             int      theElementModifiers) {
-        boolean isPublicStaticFinalCompatible
-            =  !Modifier.isStatic(theElementModifiers)
-            || !Modifier.isPublic(theElementModifiers)
-            || !Modifier.isFinal(theElementModifiers)
-            || !expectedType.isAssignableFrom(theElementType);
-        return isPublicStaticFinalCompatible;
+        if (!Modifier.isStatic(theElementModifiers))
+            return false;
+        if (!Modifier.isPublic(theElementModifiers))
+            return false;
+        if (!Modifier.isFinal(theElementModifiers))
+            return false;
+        if (!expectedType.isAssignableFrom(theElementType))
+            return false;
+        
+        return true;
     }
-    
 }
